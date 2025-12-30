@@ -119,7 +119,99 @@ const getAllBookings = async (authUser: any) => {
   return result.rows;
 };
 
+
+const updateBooking = async (
+  authUser: any,
+  bookingId: string,
+  status: "cancelled" | "returned"
+) => {
+  if (!status) {
+    throw new Error("Status is required");
+  }
+
+  // 1️⃣ get booking
+  const bookingRes = await pool.query(
+    "SELECT * FROM bookings WHERE id = $1",
+    [bookingId]
+  );
+
+  if (bookingRes.rows.length === 0) {
+    throw new Error("Booking not found");
+  }
+
+  const booking = bookingRes.rows[0];
+
+  // 2️⃣ CUSTOMER → cancel
+  if (status === "cancelled") {
+    if (authUser.role !== "customer") {
+      throw new Error("Only customer can cancel booking");
+    }
+
+    if (booking.customer_id !== authUser.id) {
+      const error: any = new Error("Forbidden");
+      error.status = 403;
+      throw error;
+    }
+
+    if (new Date() >= new Date(booking.rent_start_date)) {
+      throw new Error("Cannot cancel after booking start date");
+    }
+
+    const result = await pool.query(
+      `UPDATE bookings
+       SET status = 'cancelled'
+       WHERE id = $1
+       RETURNING id, customer_id, vehicle_id, rent_start_date, rent_end_date, total_price, status`,
+      [bookingId]
+    );
+
+    return {
+      message: "Booking cancelled successfully",
+      data: result.rows[0]
+    };
+  }
+
+  // 3️⃣ ADMIN → returned
+  if (status === "returned") {
+    if (authUser.role !== "admin") {
+      const error: any = new Error("Forbidden");
+      error.status = 403;
+      throw error;
+    }
+
+    const result = await pool.query(
+      `UPDATE bookings
+       SET status = 'returned'
+       WHERE id = $1
+       RETURNING id, customer_id, vehicle_id, rent_start_date, rent_end_date, total_price, status`,
+      [bookingId]
+    );
+
+    // update vehicle availability
+    await pool.query(
+      `UPDATE vehicles
+       SET availability_status = 'available'
+       WHERE id = $1`,
+      [booking.vehicle_id]
+    );
+
+    return {
+      message: "Booking marked as returned. Vehicle is now available",
+      data: {
+        ...result.rows[0],
+        vehicle: {
+          availability_status: "available"
+        }
+      }
+    };
+  }
+
+  throw new Error("Invalid status update");
+};
+
+
 export const bookingService = {
   createBooking,
   getAllBookings,
+  updateBooking
 };

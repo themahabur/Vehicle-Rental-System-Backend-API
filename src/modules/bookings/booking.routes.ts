@@ -8,5 +8,7 @@ const router = Router();
 
 router.post("/",authMiddleware, bookingController.createBooking);
 router.get("/", authMiddleware, bookingController.getAllBookings);
+router.put("/:bookingId", authMiddleware, bookingController.updateBooking);
+
 
 export const bookingRoutes = router;
