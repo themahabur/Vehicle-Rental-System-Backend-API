@@ -1,23 +1,15 @@
 import { Router } from "express";
 import { userController } from "./user.controller";
+import authMiddleware from "../../middlewares/auth.middleware";
+import roleMiddleware from "../../middlewares/role.middleware";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.send("Get all users");
-});
+router.get("/", userController.getAllUsers);
 
-router.post("/", userController.createUser);
+router.put("/:id", authMiddleware, roleMiddleware("admin"), userController.updateUser);
 
-router.get("/:id", (req, res) => {
-  res.send(`Get user with ID ${req.params.id}`);
-});
-router.put("/:id", (req, res) => {
-  res.send(`Update user with ID ${req.params.id}`);
-});
-router.delete("/:id", (req, res) => {
-  res.send(`Delete user with ID ${req.params.id}`);
-}); 
+router.delete("/:id", authMiddleware, roleMiddleware("admin"), userController.deleteUser); 
 
 
 export const userRoutes = router;
