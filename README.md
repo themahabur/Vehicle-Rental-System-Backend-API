@@ -1,7 +1,7 @@
 # 🚗 Vehicle Rental System – Backend API
 
-🔗 Live API: https://your-live-api-url.com  
-📦 GitHub: https://github.com/your-username/vehicle-rental-system-backend
+🔗 Live API: https://l2-assignment-2-psi.vercel.app/api/v1/  
+📦 GitHub: https://github.com/themahabur/Vehicle-Rental-System-Backend-API
 
 ---
 
@@ -91,7 +91,7 @@ daily_rent_price × number_of_days
 
 ### 1️⃣ Clone Repository
 ```bash
-git clone https://github.com/your-username/vehicle-rental-system-backend.git
+git clone https://github.com/themahabur/Vehicle-Rental-System-Backend-API.git
 cd vehicle-rental-system-backend
 
 2️⃣ Install Dependencies
@@ -117,4 +117,4 @@ http://localhost:5000
 
 The API is deployed on a cloud platform.
 
-🔗 Live API: https://your-live-api-url.com
+🔗 Live API: https://l2-assignment-2-psi.vercel.app/api/v1/

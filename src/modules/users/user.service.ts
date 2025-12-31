@@ -50,7 +50,7 @@ const updateUser = async (
 
     return result.rows[0];
   } catch (error) {
-    console.log(error+"--ddddd");
+   
     throw error;
     
   }

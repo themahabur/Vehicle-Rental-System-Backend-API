@@ -27,7 +27,7 @@ const authMiddleware = (
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtUser;
 
     req.user = decoded;
-    console.log("user: " + decoded.role);
+  
 
     next();
   } catch (error) {
