@@ -25,7 +25,6 @@ const getAllBookings = async (req: AuthRequest, res: Response) => {
     const bookings = await bookingService.getAllBookings(req.user);
 
     const userRole = req.user?.role;
-    console.log(req.user);
 
     res.status(200).json({
       success: true,
@@ -46,9 +45,9 @@ const getAllBookings = async (req: AuthRequest, res: Response) => {
 const updateBooking = async (req: AuthRequest, res: Response) => {
   try {
     const result = await bookingService.updateBooking(
-      req.user,
       req.params.bookingId as string,
-      req.body.status
+      req.body.status,
+      req.user
     );
 
     res.status(200).json({

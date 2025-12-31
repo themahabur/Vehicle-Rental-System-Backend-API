@@ -66,8 +66,7 @@ const createBooking = async (authUser: any, payload: any) => {
 const getAllBookings = async (authUser: any) => {
 
   if (authUser.role === "admin") {
-    const result = await pool.query(
-      `
+    const result = await pool.query(`
       SELECT 
         b.id,
         b.customer_id,
@@ -76,38 +75,54 @@ const getAllBookings = async (authUser: any) => {
         b.rent_end_date,
         b.total_price,
         b.status,
-        json_build_object(
-          'name', u.name,
-          'email', u.email
-        ) AS customer,
-        json_build_object(
-          'vehicle_name', v.vehicle_name,
-          'registration_number', v.registration_number
-        ) AS vehicle
+
+        u.name AS customer_name,
+        u.email AS customer_email,
+
+        v.vehicle_name,
+        v.registration_number
       FROM bookings b
       JOIN users u ON b.customer_id = u.id
       JOIN vehicles v ON b.vehicle_id = v.id
       ORDER BY b.id DESC
-      `
-    );
+    `);
 
-    return result.rows;
+    const data = result.rows.map((row) => ({
+      id: row.id,
+      customer_id: row.customer_id,
+      vehicle_id: row.vehicle_id,
+      rent_start_date: row.rent_start_date,
+      rent_end_date: row.rent_end_date,
+      total_price: row.total_price,
+      status: row.status,
+      customer: {
+        name: row.customer_name,
+        email: row.customer_email,
+      },
+      vehicle: {
+        vehicle_name: row.vehicle_name,
+        registration_number: row.registration_number,
+      },
+    }));
+
+    return data
   }
+
 
   const result = await pool.query(
     `
-    SELECT
+    SELECT 
       b.id,
+      b.customer_id,
       b.vehicle_id,
       b.rent_start_date,
       b.rent_end_date,
       b.total_price,
       b.status,
-      json_build_object(
-        'vehicle_name', v.vehicle_name,
-        'registration_number', v.registration_number,
-        'type', v.type
-      ) AS vehicle
+
+      v.vehicle_name,
+      v.registration_number,
+      v.type
     FROM bookings b
     JOIN vehicles v ON b.vehicle_id = v.id
     WHERE b.customer_id = $1
@@ -116,102 +131,124 @@ const getAllBookings = async (authUser: any) => {
     [authUser.id]
   );
 
-  return result.rows;
+  const data = result.rows.map((row) => ({
+    id: row.id,
+    customer_id: row.customer_id,
+    vehicle_id: row.vehicle_id,
+    rent_start_date: row.rent_start_date,
+    rent_end_date: row.rent_end_date,
+    total_price: row.total_price,
+    status: row.status,
+    vehicle: {
+      vehicle_name: row.vehicle_name,
+      registration_number: row.registration_number,
+      type: row.type,
+    },
+  }));
+
+  return data
 };
 
 
 const updateBooking = async (
-  authUser: any,
   bookingId: string,
-  status: "cancelled" | "returned"
+  status: string,
+  authUser: any
 ) => {
-  if (!status) {
-    throw new Error("Status is required");
-  }
 
-  // 1️⃣ get booking
-  const bookingRes = await pool.query(
-    "SELECT * FROM bookings WHERE id = $1",
+  const bookingResult = await pool.query(
+    `SELECT * FROM bookings WHERE id = $1`,
     [bookingId]
   );
 
-  if (bookingRes.rows.length === 0) {
+  if (bookingResult.rowCount === 0) {
     throw new Error("Booking not found");
   }
 
-  const booking = bookingRes.rows[0];
+  const booking = bookingResult.rows[0];
 
-  // 2️⃣ CUSTOMER → cancel
-  if (status === "cancelled") {
-    if (authUser.role !== "customer") {
-      throw new Error("Only customer can cancel booking");
+  if (authUser.role === "customer") {
+  
+    if (status !== "cancelled") {
+      throw new Error("Customers can only cancel bookings");
     }
 
+ 
     if (booking.customer_id !== authUser.id) {
-      const error: any = new Error("Forbidden");
-      error.status = 403;
-      throw error;
+      throw new Error("Unauthorized booking access");
     }
 
-    if (new Date() >= new Date(booking.rent_start_date)) {
-      throw new Error("Cannot cancel after booking start date");
+
+    const today = new Date();
+    const rentStartDate = new Date(booking.rent_start_date);
+
+    if (today >= rentStartDate) {
+      throw new Error("Booking cannot be cancelled after start date");
     }
 
-    const result = await pool.query(
-      `UPDATE bookings
-       SET status = 'cancelled'
-       WHERE id = $1
-       RETURNING id, customer_id, vehicle_id, rent_start_date, rent_end_date, total_price, status`,
+   
+    const updatedBooking = await pool.query(
+      `
+      UPDATE bookings
+      SET status = 'cancelled'
+      WHERE id = $1
+      RETURNING *
+      `,
       [bookingId]
     );
 
     return {
+      success: true,
       message: "Booking cancelled successfully",
-      data: result.rows[0]
+      data: updatedBooking.rows[0],
     };
   }
 
-  // 3️⃣ ADMIN → returned
-  if (status === "returned") {
-    if (authUser.role !== "admin") {
-      const error: any = new Error("Forbidden");
-      error.status = 403;
-      throw error;
+
+  if (authUser.role === "admin") {
+    if (status !== "returned") {
+      throw new Error("Admin can only mark booking as returned");
     }
 
-    const result = await pool.query(
-      `UPDATE bookings
-       SET status = 'returned'
-       WHERE id = $1
-       RETURNING id, customer_id, vehicle_id, rent_start_date, rent_end_date, total_price, status`,
+  
+    const updatedBooking = await pool.query(
+      `
+      UPDATE bookings
+      SET status = 'returned'
+      WHERE id = $1
+      RETURNING *
+      `,
       [bookingId]
     );
 
-    // update vehicle availability
+
     await pool.query(
-      `UPDATE vehicles
-       SET availability_status = 'available'
-       WHERE id = $1`,
+      `
+      UPDATE vehicles
+      SET availability_status = 'available'
+      WHERE id = $1
+      `,
       [booking.vehicle_id]
     );
 
     return {
+      success: true,
       message: "Booking marked as returned. Vehicle is now available",
       data: {
-        ...result.rows[0],
+        ...updatedBooking.rows[0],
         vehicle: {
-          availability_status: "available"
-        }
-      }
+          availability_status: "available",
+        },
+      },
     };
   }
 
-  throw new Error("Invalid status update");
+  throw new Error("Invalid role");
 };
 
 
 export const bookingService = {
   createBooking,
   getAllBookings,
-  updateBooking
+  updateBooking,
 };
