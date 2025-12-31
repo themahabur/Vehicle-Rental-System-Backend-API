@@ -1,69 +1,30 @@
 # 🚗 Vehicle Rental System – Backend API
 
-🔗 **Live API URL:** https://your-live-api-url.com  
-📦 **GitHub Repository:** https://github.com/your-username/vehicle-rental-system-backend
+🔗 Live API: https://your-live-api-url.com  
+📦 GitHub: https://github.com/your-username/vehicle-rental-system-backend
 
 ---
 
-## 📌 Project Overview
-
-The **Vehicle Rental System Backend API** is a RESTful application built to manage vehicle rentals efficiently.  
-It supports secure authentication, role-based authorization, vehicle inventory management, and complete booking lifecycle handling.
-
-The project follows **clean architecture**, **modular design**, and **industry best practices** using **Node.js and TypeScript**.
+## 📌 Overview
+RESTful backend API for managing vehicle rentals with secure authentication, role-based access, vehicle inventory, and booking management. Built with **Node.js, TypeScript, Express, PostgreSQL**.
 
 ---
 
 ## ✨ Features
-
-- 🔐 JWT-based Authentication
-- 👥 Role-based Access Control (Admin & Customer)
-- 🚘 Vehicle Inventory Management
-- 📅 Booking, Cancellation & Return System
-- 💰 Automatic Rental Cost Calculation
-- 🧱 Feature-based Modular Architecture
-- ⚠️ Centralized Error Handling
-- 🔒 Secure Password Hashing using bcrypt
+- JWT Authentication
+- Admin & Customer Roles
+- Vehicle Management
+- Booking, Cancel & Return System
+- Auto Rental Cost Calculation
+- Modular Feature-based Architecture
+- bcrypt Password Hashing
 
 ---
 
-## 🛠️ Technology Stack
-
-- **Runtime:** Node.js  
-- **Language:** TypeScript  
-- **Framework:** Express.js  
-- **Database:** PostgreSQL  
-- **Authentication:** JSON Web Token (JWT)  
-- **Security:** bcrypt  
-- **Environment Management:** dotenv  
-
----
-
-## 📁 Project Structure
-
-src/
-├── config/ # Database & environment configuration
-├── middlewares/ # Auth, role & error middlewares
-├── modules/ # Feature-based modules
-│ ├── auth/
-│ ├── bookings/
-│ ├── users/
-│ └── vehicles/
-├── types/ # Shared TypeScript types
-├── app.ts # Express app configuration
-├── server.ts # Server entry point
+## 🛠️ Tech Stack
+Node.js | TypeScript | Express.js | PostgreSQL | JWT | bcrypt | dotenv
 
 
-Root Files:
-
-
-.env
-.gitignore
-package.json
-tsconfig.json
-
-
----
 
 ## 🔐 Authentication & Authorization
 
@@ -82,7 +43,7 @@ tsconfig.json
 
 
 
-Authorization: Bearer <token>
+Authorization: Bearer token
 
 
 ---
