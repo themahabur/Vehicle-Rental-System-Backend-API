@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as VehicleService from "./vehicle.service";
 
- const createVehicle = async (req: Request, res: Response) => {
+const createVehicle = async (req: Request, res: Response) => {
   try {
     const vehicle = await VehicleService.createVehicle(req.body);
     res.status(201).json({
@@ -14,12 +14,16 @@ import * as VehicleService from "./vehicle.service";
   }
 };
 
- const getAllVehicles = async (_req: Request, res: Response) => {
+const getAllVehicles = async (_req: Request, res: Response) => {
   const vehicles = await VehicleService.getAllVehicles();
-  res.json({ success: true, data: vehicles });
+  res.json({
+    success: true,
+    message: "Vehicles retrieved successfully",
+    data: vehicles,
+  });
 };
 
- const getVehicleById = async (req: Request, res: Response) => {
+const getVehicleById = async (req: Request, res: Response) => {
   try {
     const vehicle = await VehicleService.getVehicleById(
       req.params.vehicleId as string
@@ -34,7 +38,7 @@ import * as VehicleService from "./vehicle.service";
   }
 };
 
- const updateVehicle = async (req: Request, res: Response) => {
+const updateVehicle = async (req: Request, res: Response) => {
   try {
     const vehicle = await VehicleService.updateVehicle(
       req.params.vehicleId as string,
@@ -50,7 +54,7 @@ import * as VehicleService from "./vehicle.service";
   }
 };
 
- const deleteVehicle = async (req: Request, res: Response) => {
+const deleteVehicle = async (req: Request, res: Response) => {
   try {
     await VehicleService.deleteVehicle(req.params.vehicleId as string);
     res.json({ success: true, message: "Vehicle deleted successfully" });
